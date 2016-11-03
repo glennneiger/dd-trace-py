@@ -12,6 +12,7 @@ dependencies:
     # only docker-engine==1.9
     - pip install docker-compose==1.7.1
     - sudo apt-get install libmemcached-dev # required for pylibmc
+    - pip install tox detox flake8
 
 test:
   override:
