@@ -1,5 +1,6 @@
 desc "Starts all backing services and run all tests"
 task :test do
+  sh "python setup.py test -n" # install test deps
   sh "docker-compose up -d | cat"
   begin
     sh "detox"
