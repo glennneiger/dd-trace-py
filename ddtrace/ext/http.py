@@ -14,6 +14,7 @@ TYPE = "http"
 URL = "http.url"
 METHOD = "http.method"
 STATUS_CODE = "http.status_code"
+GET_PARAMS = "http.get_params"
 
 # template render span type
 TEMPLATE = 'template'

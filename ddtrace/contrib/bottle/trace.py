@@ -37,6 +37,7 @@ class TracePlugin(object):
                     s.set_tag(http.STATUS_CODE, code or response.status_code)
                     s.set_tag(http.URL, request.path)
                     s.set_tag(http.METHOD, request.method)
+                    s.set_tag(http.GET_PARAMS, request.query_string)
 
         return wrapped
 
