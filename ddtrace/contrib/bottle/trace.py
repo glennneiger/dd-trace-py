@@ -38,6 +38,7 @@ class TracePlugin(object):
                     s.set_tag(http.URL, request.path)
                     s.set_tag(http.METHOD, request.method)
                     s.set_tag(http.GET_PARAMS, request.query_string)
+                    s.set_tag(http.SESSION_ID, request.get_cookies('peloton_session_id'))
 
         return wrapped
 
