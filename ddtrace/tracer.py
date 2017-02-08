@@ -19,7 +19,7 @@ class Tracer(object):
         you can use the global traced instance:
 
         >>> from ddtrace import tracer
-        >>> tracer.trace("foo").finish()
+        >>> trace = tracer.trace("app.request", "web-server").finish()
     """
 
     DEFAULT_HOSTNAME = 'localhost'
@@ -50,6 +50,9 @@ class Tracer(object):
         # things.
         self._services = {}
 
+        # globally set tags
+        self.tags = {}
+
     def configure(self, enabled=None, hostname=None, port=None, sampler=None):
         """Configure an existing Tracer the easy way.
 
@@ -75,7 +78,7 @@ class Tracer(object):
 
         :param str name: the name of the operation being traced
         :param str service: the name of the service being traced. If not set,
-                            it will inherit the service from it's parent.
+                            it will inherit the service from its parent.
         :param str resource: an optional name of the resource being tracked.
         :param str span_type: an optional operation type.
 
@@ -126,6 +129,9 @@ class Tracer(object):
                 span_type=span_type,
             )
             self.sampler.sample(span)
+
+        if self.tags:
+            span.set_tags(self.tags)
 
         # Note the current trace.
         self.span_buffer.set(span)
@@ -194,7 +200,7 @@ class Tracer(object):
                 # queue them for writes.
                 self.writer.write(services=services)
         except Exception:
-            log.exception("error setting service info")
+            log.debug("error setting service info", exc_info=True)
 
     def wrap(self, name=None, service=None, resource=None, span_type=None):
         """A decorator used to trace an entire function.
@@ -234,3 +240,11 @@ class Tracer(object):
             return func_wrapper
 
         return wrap_decorator
+
+    def set_tags(self, tags):
+        """ Set some tags at the tracer level.
+        This will append those tags to each span created by the tracer.
+
+        :param str tags: dict of tags to set at tracer level
+        """
+        self.tags.update(tags)
