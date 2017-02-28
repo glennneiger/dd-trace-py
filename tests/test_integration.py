@@ -120,8 +120,10 @@ class TestWorkers(TestCase):
         self._wait_thread_flush()
         eq_(self.api._put.call_count, 2)
         # check arguments
+        # FIXME: this is racy because we don't know which of /traces or /services will be hit first
         endpoint = self.api._put.call_args[0][0]
         payload = self._decode(self.api._put.call_args[0][1])
+
         eq_(endpoint, '/v0.3/services')
         eq_(len(payload.keys()), 1)
         eq_(payload['client.service'], {'app': 'django', 'app_type': 'web'})
@@ -167,6 +169,26 @@ class TestAPITransport(TestCase):
     def test_send_single_trace(self):
         # register a single trace with a span and send them to the trace agent
         self.tracer.trace('client.testing').finish()
+        trace = self.tracer.writer.pop()
+        traces = [trace]
+
+        # test JSON encoder
+        response = self.api_json.send_traces(traces)
+        ok_(response)
+        eq_(response.status, 200)
+
+        # test Msgpack encoder
+        response = self.api_msgpack.send_traces(traces)
+        ok_(response)
+        eq_(response.status, 200)
+
+    def test_send_single_with_wrong_errors(self):
+        # if the error field is set to True, it must be cast as int so
+        # that the agent decoder handles that properly without providing
+        # a decoding error
+        span = self.tracer.trace('client.testing')
+        span.error = True
+        span.finish()
         trace = self.tracer.writer.pop()
         traces = [trace]
 
